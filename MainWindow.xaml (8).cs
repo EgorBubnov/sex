@@ -1,15 +1,10 @@
-﻿using DOMINO.Modules;
-using System.Text;
+using DOMINO.Modules;
+using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Markup;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+
 namespace DOMINO
 {
     /// <summary>
@@ -28,6 +23,7 @@ namespace DOMINO
         GameEngine engine = new GameEngine();
         //Убирание дабл клика после нажатия
         private DateTime _lastClickTime = DateTime.MinValue;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -37,9 +33,10 @@ namespace DOMINO
             GameBoard.MouseLeftButtonDown += CanvasLeftClicked;
             GameBoard.MouseRightButtonDown += CanvasRightClicked;
         }
-         private bool ShowPlayerNamesWindow() // тут показываю окна ввода имени
+
+        private bool ShowPlayerNamesWindow()
         {
-            var namesWindow = new PlayerNamesWindow(); // Важно: класс из Player2.xaml.cs
+            var namesWindow = new PlayerNamesWindow();
             if (namesWindow.ShowDialog() == true)
             {
                 player1 = new Player { name = namesWindow.Player1Name };
@@ -50,101 +47,106 @@ namespace DOMINO
             }
             return false;
         }
+
         //Кнопка создания новой игры  
         void NewGameButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!ShowPlayerNamesWindow()) // Добавленный вызов окна ввода имен
+            if (!ShowPlayerNamesWindow()) 
             {
-                Application.Current.Shutdown();
-                return;
+                return; // Просто выходим, если пользователь отменил ввод
             }
-            //Связь данных о игроке с дижком
+
+            //Связь данных о игроке с движком
             ref Player playerNOW = ref engine.PlayerNOW;
             playerNOW = player1;
 
-
-            if (allTilles != null) allTilles.Clear();
-            if (player1.hand.Count !=0) player1.hand.Clear();
-            if (player2.hand.Count !=0) player2.hand.Clear();
+            // Очистка перед новой игрой
+            allTilles?.Clear();
+            player1?.hand?.Clear();
+            player2?.hand?.Clear();
             HandPlayer.Children.Clear();
             GameBoard.Children.Clear();
+
+            // Инициализация новой игры
             engine.mainw(this);
             engine.Clicked_rectangle = false;
             allTilles = new List<Tile>();
             TilesOnCanvas = new List<Tile>();
-                for (int i = 0; i <= 6; ++i)
+
+            // Создание всех костяшек домино
+            for (int i = 0; i <= 6; ++i)
+            {
+                for (int j = i; j <= 6; ++j) // Исправлено j = 0 на j = i для правильных костяшек
                 {
-                    for (int j = 0; j <= 6; ++j)
-                    {
-                        Tile tile = new Tile();
-                        tile.value1 = i; tile.value2 = j; tile.direction = 1;
-                        allTilles.Add(tile);
-                    }
+                    allTilles.Add(new Tile { value1 = i, value2 = j, direction = 1 });
                 }
-            Shuffle<Tile>(allTilles);
-            //Раздача костяшек игрокам
+            }
+
+            Shuffle(allTilles);
+            
+            // Раздача костяшек игрокам
             engine.GiveHandPlayer(ref player1, ref allTilles);
             engine.GiveHandPlayer(ref player2, ref allTilles);
-            //Отрисовка костяшек игрока 1
+            
+            // Отрисовка руки игрока
             engine.DrawHandTile(ref player1, ref HandPlayer);
             BoneyardCountText.Text = allTilles.Count.ToString();
             engine.GameStart(this);
         }
-        //Метод перемешивает элементы в List
+
+        // Метод перемешивания List
         public static void Shuffle<T>(IList<T> list)
         {
             Random rng = new Random();
-            int n = list.Count();
+            int n = list.Count;
             while (n > 1)
             {
                 n--;
                 int k = rng.Next(n + 1);
-                (list[k], list[n]) = (list[n], list[k]); // Обмен значениями
+                (list[k], list[n]) = (list[n], list[k]);
             }
         }
-        //На будущее
+
         public void DrawButton_Click(object sender, RoutedEventArgs e)
         {
-
+            // TODO: Реализовать функционал взятия из базара
         }
-        //На будущее
+
         public void PassButton_Click(object sender, RoutedEventArgs e)
         {
-
+            // TODO: Реализовать функционал пропуска хода
         }
-        //Кнопка выхода из проги
+
         public void ExiteButton_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
-        //Нажатие левой кнопки мышью по канвасу
+
         public void CanvasLeftClicked(object sender, MouseButtonEventArgs e)
         {
-            //Защита от дабл клика
             if ((DateTime.Now - _lastClickTime).TotalMilliseconds < 300)
                 return;
 
             _lastClickTime = DateTime.Now;
-
             engine.CanvasLeftClicked(sender, e, this);
         }
-        //Нажатие правой кнопки мышью по канвасу
+
         public void CanvasRightClicked(object sender, MouseButtonEventArgs e)
         {
-            //Защита от дабл клика
             if ((DateTime.Now - _lastClickTime).TotalMilliseconds < 300)
                 return;
 
             _lastClickTime = DateTime.Now;
-
             engine.CanvasRightClicked(sender, e, this);
         }
+
         public void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
         {
             engine.Rectangle_MouseDown(sender, e);
         }
     }
-    //Класс кости
+
+    // Класс костяшки домино
     public class Tile
     {
         public int value1;
@@ -152,12 +154,12 @@ namespace DOMINO
         public int width = 30;
         public int height = 60;
         public Canvas rectangle = new Canvas();
-        //1 - верх, 2 - право, 3 -вниз, 4 -влево
+        // Направление: 1 - верх, 2 - право, 3 - вниз, 4 - влево
         public int direction;
         public int end_tile;
     }
 
-    //Класс игрока
+    // Класс игрока
     public class Player
     {
         public string name;
