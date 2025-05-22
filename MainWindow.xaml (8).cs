@@ -30,117 +30,73 @@ namespace DOMINO
         public MainWindow()
         {
             InitializeComponent();
-            InitializeWindowSettings();
-            SetupEventHandlers();
-        }
-
-        private void InitializeWindowSettings()
-        {
             this.WindowState = WindowState.Maximized;
             this.WindowStyle = WindowStyle.None;
             this.ResizeMode = ResizeMode.NoResize;
-        }
-
-        private void SetupEventHandlers()
-        {
             GameBoard.MouseLeftButtonDown += CanvasLeftClicked;
             GameBoard.MouseRightButtonDown += CanvasRightClicked;
         }
 
-        // Показываем окно ввода имени
         private bool ShowPlayerNamesWindow()
         {
             var namesWindow = new PlayerNamesWindow();
             if (namesWindow.ShowDialog() == true)
             {
-                InitializePlayers(namesWindow);
+                player1 = new Player { name = namesWindow.Player1Name };
+                player2 = new Player { name = namesWindow.Player2Name };
+                engine.PlayerNOW = player1;
+                CurrentPlayerText.Text = player1.name;
                 return true;
             }
             return false;
         }
 
-        private void InitializePlayers(PlayerNamesWindow namesWindow)
+        // Кнопка создания новой игры
+        void NewGameButton_Click(object sender, RoutedEventArgs e)
         {
+            var namesWindow = new PlayerNamesWindow();
+            var result = namesWindow.ShowDialog();
+            
+            if (result != true)
+            {
+                return; // Просто выходим, не закрывая приложение
+            }
+
+            // Инициализация новой игры
             player1 = new Player { name = namesWindow.Player1Name };
             player2 = new Player { name = namesWindow.Player2Name };
             engine.PlayerNOW = player1;
             CurrentPlayerText.Text = player1.name;
-        }
 
-        // Кнопка создания новой игры
-        void NewGameButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!StartNewGame()) return;
-            
-            InitializeGameState();
-            CreateAllTiles();
-            ShuffleAndDealTiles();
-            StartGame();
-        }
-
-        private bool StartNewGame()
-        {
-            if (!ShowPlayerNamesWindow())
-            {
-                return false;
-            }
-            return true;
-        }
-
-        private void InitializeGameState()
-        {
-            // Связь данных о игроке с движком
-            ref Player playerNOW = ref engine.PlayerNOW;
-            playerNOW = player1;
-
-            ClearPreviousGame();
-            engine.mainw(this);
-            engine.Clicked_rectangle = false;
-        }
-
-        private void ClearPreviousGame()
-        {
+            // Очистка перед новой игрой
             allTilles?.Clear();
             player1?.hand?.Clear();
             player2?.hand?.Clear();
             HandPlayer.Children.Clear();
             GameBoard.Children.Clear();
-            
+
+            engine.mainw(this);
+            engine.Clicked_rectangle = false;
             allTilles = new List<Tile>();
             TilesOnCanvas = new List<Tile>();
-        }
 
-        private void CreateAllTiles()
-        {
+            // Создание всех костяшек
             for (int i = 0; i <= 6; ++i)
             {
-                for (int j = i; j <= 6; ++j) // Изменено на j = i для правильных костяшек
+                for (int j = i; j <= 6; ++j)
                 {
-                    allTilles.Add(new Tile 
-                    { 
-                        value1 = i, 
-                        value2 = j, 
-                        direction = 1 
-                    });
+                    allTilles.Add(new Tile { value1 = i, value2 = j, direction = 1 });
                 }
             }
-        }
 
-        private void ShuffleAndDealTiles()
-        {
             Shuffle(allTilles);
             engine.GiveHandPlayer(ref player1, ref allTilles);
             engine.GiveHandPlayer(ref player2, ref allTilles);
             engine.DrawHandTile(ref player1, ref HandPlayer);
             BoneyardCountText.Text = allTilles.Count.ToString();
-        }
-
-        private void StartGame()
-        {
             engine.GameStart(this);
         }
 
-        // Метод перемешивает элементы в List
         public static void Shuffle<T>(IList<T> list)
         {
             Random rng = new Random();
@@ -153,43 +109,37 @@ namespace DOMINO
             }
         }
 
-        // На будущее
         public void DrawButton_Click(object sender, RoutedEventArgs e)
         {
             // TODO: Реализовать функционал взятия из базара
         }
 
-        // На будущее
         public void PassButton_Click(object sender, RoutedEventArgs e)
         {
             // TODO: Реализовать функционал пропуска хода
         }
 
-        // Кнопка выхода из программы
         public void ExiteButton_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
 
-        // Нажатие левой кнопки мышью по канвасу
         public void CanvasLeftClicked(object sender, MouseButtonEventArgs e)
         {
-            if (IsDoubleClick()) return;
+            if ((DateTime.Now - _lastClickTime).TotalMilliseconds < 300)
+                return;
+
             _lastClickTime = DateTime.Now;
             engine.CanvasLeftClicked(sender, e, this);
         }
 
-        // Нажатие правой кнопки мышью по канвасу
         public void CanvasRightClicked(object sender, MouseButtonEventArgs e)
         {
-            if (IsDoubleClick()) return;
+            if ((DateTime.Now - _lastClickTime).TotalMilliseconds < 300)
+                return;
+
             _lastClickTime = DateTime.Now;
             engine.CanvasRightClicked(sender, e, this);
-        }
-
-        private bool IsDoubleClick()
-        {
-            return (DateTime.Now - _lastClickTime).TotalMilliseconds < 300;
         }
 
         public void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
@@ -198,7 +148,6 @@ namespace DOMINO
         }
     }
 
-    // Класс костяшки домино
     public class Tile
     {
         public int value1;
@@ -206,13 +155,10 @@ namespace DOMINO
         public int width = 30;
         public int height = 60;
         public Canvas rectangle = new Canvas();
-        
-        // Направление: 1 - верх, 2 - право, 3 - вниз, 4 - влево
         public int direction;
         public int end_tile;
     }
 
-    // Класс игрока
     public class Player
     {
         public string name;
