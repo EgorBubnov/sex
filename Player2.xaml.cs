@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 
 namespace DOMINO
@@ -10,12 +11,12 @@ namespace DOMINO
         public PlayerNamesWindow()
         {
             InitializeComponent();
+            this.Closing += Window_Closing;
         }
 
         private void StartGameButton_Click(object sender, RoutedEventArgs e)
         {
-            Player1Name = string.IsNullOrWhiteSpace(Player1TextBox.Text) ? "Игрок 1" : Player1TextBox.Text.Trim();
-            Player2Name = string.IsNullOrWhiteSpace(Player2TextBox.Text) ? "Игрок 2" : Player2TextBox.Text.Trim();
+            SetPlayerNames();
             DialogResult = true;
             Close();
         }
@@ -24,6 +25,25 @@ namespace DOMINO
         {
             DialogResult = false;
             Close();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (DialogResult == null)
+            {
+                DialogResult = false;
+            }
+        }
+
+        private void SetPlayerNames()
+        {
+            Player1Name = string.IsNullOrWhiteSpace(Player1TextBox.Text) 
+                ? "Игрок 1" 
+                : Player1TextBox.Text.Trim();
+            
+            Player2Name = string.IsNullOrWhiteSpace(Player2TextBox.Text) 
+                ? "Игрок 2" 
+                : Player2TextBox.Text.Trim();
         }
     }
 }
