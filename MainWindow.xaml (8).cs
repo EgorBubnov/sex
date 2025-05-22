@@ -1,4 +1,3 @@
-using DOMINO.Modules;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -7,21 +6,14 @@ using System.Windows.Input;
 
 namespace DOMINO
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        //Все доминошки
         public List<Tile> allTilles;
         public List<Tile> TilesOnCanvas;
-        //Данный ход игрока
         public int PlayerMove;
         public Player player1;
         public Player player2;
-        //Подключение игрового движка 
         GameEngine engine = new GameEngine();
-        //Убирание дабл клика после нажатия
         private DateTime _lastClickTime = DateTime.MinValue;
 
         public MainWindow()
@@ -30,8 +22,6 @@ namespace DOMINO
             this.WindowState = WindowState.Maximized;
             this.WindowStyle = WindowStyle.None;
             this.ResizeMode = ResizeMode.NoResize;
-            GameBoard.MouseLeftButtonDown += CanvasLeftClicked;
-            GameBoard.MouseRightButtonDown += CanvasRightClicked;
         }
 
         private bool ShowPlayerNamesWindow()
@@ -48,53 +38,25 @@ namespace DOMINO
             return false;
         }
 
-        //Кнопка создания новой игры  
-        void NewGameButton_Click(object sender, RoutedEventArgs e)
+        private void NewGameButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!ShowPlayerNamesWindow()) 
-            {
-                return; // Просто выходим, если пользователь отменил ввод
-            }
-
-            //Связь данных о игроке с движком
-            ref Player playerNOW = ref engine.PlayerNOW;
-            playerNOW = player1;
-
-            // Очистка перед новой игрой
-            allTilles?.Clear();
-            player1?.hand?.Clear();
-            player2?.hand?.Clear();
+            if (!ShowPlayerNamesWindow()) return;
+            
+            // Инициализация новой игры
+            allTilles = new List<Tile>();
+            TilesOnCanvas = new List<Tile>();
             HandPlayer.Children.Clear();
             GameBoard.Children.Clear();
 
-            // Инициализация новой игры
-            engine.mainw(this);
-            engine.Clicked_rectangle = false;
-            allTilles = new List<Tile>();
-            TilesOnCanvas = new List<Tile>();
-
-            // Создание всех костяшек домино
-            for (int i = 0; i <= 6; ++i)
-            {
-                for (int j = i; j <= 6; ++j) // Исправлено j = 0 на j = i для правильных костяшек
-                {
-                    allTilles.Add(new Tile { value1 = i, value2 = j, direction = 1 });
-                }
-            }
+            // Создание костяшек
+            for (int i = 0; i <= 6; i++)
+                for (int j = i; j <= 6; j++)
+                    allTilles.Add(new Tile { value1 = i, value2 = j });
 
             Shuffle(allTilles);
-            
-            // Раздача костяшек игрокам
-            engine.GiveHandPlayer(ref player1, ref allTilles);
-            engine.GiveHandPlayer(ref player2, ref allTilles);
-            
-            // Отрисовка руки игрока
-            engine.DrawHandTile(ref player1, ref HandPlayer);
             BoneyardCountText.Text = allTilles.Count.ToString();
-            engine.GameStart(this);
         }
 
-        // Метод перемешивания List
         public static void Shuffle<T>(IList<T> list)
         {
             Random rng = new Random();
@@ -103,50 +65,15 @@ namespace DOMINO
             {
                 n--;
                 int k = rng.Next(n + 1);
-                (list[k], list[n]) = (list[n], list[k]);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
             }
         }
 
-        public void DrawButton_Click(object sender, RoutedEventArgs e)
-        {
-            // TODO: Реализовать функционал взятия из базара
-        }
-
-        public void PassButton_Click(object sender, RoutedEventArgs e)
-        {
-            // TODO: Реализовать функционал пропуска хода
-        }
-
-        public void ExiteButton_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
-        public void CanvasLeftClicked(object sender, MouseButtonEventArgs e)
-        {
-            if ((DateTime.Now - _lastClickTime).TotalMilliseconds < 300)
-                return;
-
-            _lastClickTime = DateTime.Now;
-            engine.CanvasLeftClicked(sender, e, this);
-        }
-
-        public void CanvasRightClicked(object sender, MouseButtonEventArgs e)
-        {
-            if ((DateTime.Now - _lastClickTime).TotalMilliseconds < 300)
-                return;
-
-            _lastClickTime = DateTime.Now;
-            engine.CanvasRightClicked(sender, e, this);
-        }
-
-        public void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            engine.Rectangle_MouseDown(sender, e);
-        }
+        private void ExiteButton_Click(object sender, RoutedEventArgs e) => Application.Current.Shutdown();
     }
 
-    // Класс костяшки домино
     public class Tile
     {
         public int value1;
@@ -154,15 +81,13 @@ namespace DOMINO
         public int width = 30;
         public int height = 60;
         public Canvas rectangle = new Canvas();
-        // Направление: 1 - верх, 2 - право, 3 - вниз, 4 - влево
-        public int direction;
+        public int direction = 1;
         public int end_tile;
     }
 
-    // Класс игрока
     public class Player
     {
         public string name;
-        public List<Tile> hand = new List<Tile>();        
+        public List<Tile> hand = new List<Tile>();
     }
 }
