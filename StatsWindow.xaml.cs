@@ -1,10 +1,12 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace DOMINO
 {
-    public partial class StatisticsWindow : Window
+    public partial class StatsWindow : Window
     {
-        public StatisticsWindow()
+        public StatsWindow()
         {
             InitializeComponent();
         }
@@ -14,8 +16,7 @@ namespace DOMINO
             this.Close();
         }
 
-        // Метод для добавления элемента статистики (будет дополнен после реализации JSON)
-        public void AddStatisticItem(string gameInfo)
+        public void AddStatItem(string gameInfo)
         {
             var textBlock = new TextBlock
             {
@@ -24,7 +25,7 @@ namespace DOMINO
                 Margin = new Thickness(0, 5, 0, 5),
                 TextWrapping = TextWrapping.Wrap
             };
-            StatisticsContainer.Children.Add(textBlock);
+            StatsContainer.Children.Add(textBlock);
         }
     }
 }
