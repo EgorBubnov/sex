@@ -1,4 +1,4 @@
-﻿using DOMINO.Modules;
+using DOMINO.Modules;
 using System.Configuration.Internal;
 using System.Text;
 using System.Windows;
@@ -46,6 +46,19 @@ namespace DOMINO
             _musicPlayer.MediaEnded += MusicPlayer_MediaEnded;
             _musicPlayer.Play();
         }
+
+        // Метод для отображения статистики
+        private void ShowStatsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var statsWindow = new StatsWindow();
+            
+            // Здесь можно добавить данные статистики, например:
+            // statsWindow.AddStatItem("Игра 1: Игрок1 vs Игрок2 - Победитель: Игрок1");
+            // statsWindow.AddStatItem("Игра 2: Игрок1 vs Игрок2 - Победитель: Игрок2");
+            
+            statsWindow.ShowDialog();
+        }
+
         //Кнопка создания новой игры  
         void NewGameButton_Click(object sender, RoutedEventArgs e)
         {
@@ -62,7 +75,6 @@ namespace DOMINO
             player2 = new Player { name = namesWindow.Player2Name };
             engine.PlayerNOW = player1;
             CurrentPlayerText.Text = player1.name;
-
 
             if (allTilles != null) allTilles.Clear();
             if (player1.hand.Count !=0) player1.hand.Clear();
@@ -91,6 +103,7 @@ namespace DOMINO
             BoneyardCountText.Text = allTilles.Count.ToString();
             engine.GameStart(this);
         }
+
         //Метод перемешивает элементы в List
         public static void Shuffle<T>(IList<T> list)
         {
@@ -103,6 +116,7 @@ namespace DOMINO
                 (list[k], list[n]) = (list[n], list[k]); // Обмен значениями
             }
         }
+
         //Метод дает игроку дополнительную  кость
         public void DrawButton_Click(object sender, RoutedEventArgs e)
         {
@@ -116,6 +130,7 @@ namespace DOMINO
                 BoneyardCountText.Text = allTilles.Count.ToString();
             }
         }
+
         //Метод смены игрока при нажатии на кнопку
         public void PassButton_Click(object sender, RoutedEventArgs e)
         {
@@ -142,6 +157,7 @@ namespace DOMINO
             engine.Skip_move_count++;
             engine.GameStart(this);
         }
+
         //Метод смены игрока при нажатии на кнопку, для использования в движке игры
         public void PassButton_Click()
         {
@@ -151,11 +167,13 @@ namespace DOMINO
             engine.Skip_move_count = 0;
             engine.GameStart(this);
         }
+
         //Кнопка выхода из программы
         public void ExiteButton_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
+
         //Нажатие левой кнопки мышью по канвасу
         public bool CanvasLeftClickedFLAG = false;
         public void CanvasLeftClicked(object sender, MouseButtonEventArgs e)
@@ -169,6 +187,7 @@ namespace DOMINO
 
             engine.CanvasLeftClicked(sender, e);
         }
+
         //Нажатие правой кнопки мышью по канвасу
         public void CanvasRightClicked(object sender, MouseButtonEventArgs e)
         {
@@ -180,10 +199,12 @@ namespace DOMINO
 
             engine.CanvasRightClicked(sender, e, this);
         }
+
         public void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
         {
             engine.Rectangle_MouseDown(sender, e);
         }
+
         //Изменение режима музыки
         Image imageON = new Image { Width = 50, Height = 50, Stretch = Stretch.Uniform };
         BitmapImage bitmapON = new BitmapImage(new Uri("/Resource/SOUNDON.png", UriKind.Relative));
@@ -202,6 +223,7 @@ namespace DOMINO
                 _musicPlayer.Pause();
             }
         }
+
         //Метод циклит музыку
         private void MusicPlayer_MediaEnded(object sender, EventArgs e)
         {
@@ -209,6 +231,7 @@ namespace DOMINO
             _musicPlayer.Play();
         }
     }
+
     //Класс кости
     public class Tile
     {
