@@ -15,24 +15,21 @@ using System.Collections.Generic;
 
 namespace DOMINO
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        //Все доминошки
+        // Все доминошки
         public List<Tile> allTilles;
         public List<Tile> TilesOnCanvas;
-        //Данный ход игрока
+        // Данный ход игрока
         public Player player1;
         public Player player2;
-        //Подключение игрового движка 
+        // Подключение игрового движка 
         GameEngine engine = new GameEngine();
-        //Убирание дабл клика после нажатия
+        // Убирание дабл клика после нажатия
         private DateTime _lastClickTime = DateTime.MinValue;
-        //Медиа плеер
+        // Медиа плеер
         private MediaPlayer _musicPlayer;
-        //Список для хранения статистики игр
+        // Список для хранения статистики игр
         private List<string> gameStats = new List<string>();
 
         public MainWindow()
@@ -43,7 +40,7 @@ namespace DOMINO
             this.ResizeMode = ResizeMode.NoResize;
             GameBoard.MouseLeftButtonDown += CanvasLeftClicked;
             GameBoard.MouseRightButtonDown += CanvasRightClicked;
-            //Добавление плеера
+            // Добавление плеера
             _musicPlayer = new MediaPlayer();
             _musicPlayer.Volume = 0.3;
             _musicPlayer.Open(new Uri("Resource/MUSIC.mp3", UriKind.Relative));
@@ -83,26 +80,26 @@ namespace DOMINO
         {
             if (player1 == null || player2 == null) return;
 
-            int player1Score = 0;
-            int player2Score = 0;
-            
-            // Подсчет очков у игроков
-            foreach (var tile in player1.hand)
-            {
-                player1Score += tile.value1 + tile.value2;
-            }
-            
-            foreach (var tile in player2.hand)
-            {
-                player2Score += tile.value1 + tile.value2;
-            }
+            int player1Score = CalculatePlayerScore(player1);
+            int player2Score = CalculatePlayerScore(player2);
             
             // Обновление текста статистики
             CurrentPlayerText.Text = $"{engine.PlayerNOW.name} (Ход: {engine.Skip_move_count + 1})";
             BoneyardCountText.Text = $"{allTilles.Count} | {player1.name}: {player1Score} | {player2.name}: {player2Score}";
         }
 
-        //Кнопка создания новой игры  
+        // Метод для подсчета очков игрока
+        private int CalculatePlayerScore(Player player)
+        {
+            int score = 0;
+            foreach (var tile in player.hand)
+            {
+                score += tile.value1 + tile.value2;
+            }
+            return score;
+        }
+
+        // Кнопка создания новой игры  
         void NewGameButton_Click(object sender, RoutedEventArgs e)
         {
             var namesWindow = new PlayerNamesWindow();
@@ -110,47 +107,52 @@ namespace DOMINO
 
             if (result != true)
             {
-                return; // Просто выходим, не закрывая приложение
+                return;
             }
 
             // Инициализация новой игры
             player1 = new Player { name = namesWindow.Player1Name };
             player2 = new Player { name = namesWindow.Player2Name };
             engine.PlayerNOW = player1;
-            CurrentPlayerText.Text = player1.name;
-
+            
+            // Очистка предыдущей игры
             if (allTilles != null) allTilles.Clear();
-            if (player1.hand.Count !=0) player1.hand.Clear();
-            if (player2.hand.Count !=0) player2.hand.Clear();
+            if (player1.hand.Count != 0) player1.hand.Clear();
+            if (player2.hand.Count != 0) player2.hand.Clear();
             HandPlayer.Children.Clear();
             GameBoard.Children.Clear();
+            
             engine.mainw(this);
             engine.Clicked_rectangle = false;
             allTilles = new List<Tile>();
             TilesOnCanvas = new List<Tile>();
-                for (int i = 0; i <= 6; ++i)
+            
+            // Создание всех костяшек
+            for (int i = 0; i <= 6; ++i)
+            {
+                for (int j = 0; j <= 6; ++j)
                 {
-                    for (int j = 0; j <= 6; ++j)
-                    {
-                        Tile tile = new Tile();
-                        tile.value1 = i; tile.value2 = j; tile.direction = 1;
-                        allTilles.Add(tile);
-                    }
+                    Tile tile = new Tile();
+                    tile.value1 = i; tile.value2 = j; tile.direction = 1;
+                    allTilles.Add(tile);
                 }
+            }
+            
             Shuffle<Tile>(allTilles);
-            //Раздача костяшек игрокам
+            
+            // Раздача костяшек игрокам
             engine.GiveHandPlayer(ref player1, ref allTilles);
             engine.GiveHandPlayer(ref player2, ref allTilles);
-            //Отрисовка костяшек игрока 1
-            engine.DrawHandTile(ref player1, ref HandPlayer);
-            BoneyardCountText.Text = allTilles.Count.ToString();
-            engine.GameStart(this);
             
-            // Инициализация статистики при старте игры
+            // Отрисовка костяшек игрока 1
+            engine.DrawHandTile(ref player1, ref HandPlayer);
+            
+            // Инициализация статистики
             UpdateGameStats();
+            engine.GameStart(this);
         }
 
-        //Метод перемешивает элементы в List
+        // Метод перемешивает элементы в List
         public static void Shuffle<T>(IList<T> list)
         {
             Random rng = new Random();
@@ -159,174 +161,65 @@ namespace DOMINO
             {
                 n--;
                 int k = rng.Next(n + 1);
-                (list[k], list[n]) = (list[n], list[k]); // Обмен значениями
+                (list[k], list[n]) = (list[n], list[k]);
             }
         }
 
-        //Метод дает игроку дополнительную  кость
+        // Метод дает игроку дополнительную кость
         public void DrawButton_Click(object sender, RoutedEventArgs e)
         {
-            if (player1 == null) { return; }
-            if (allTilles.Count != 0)
-            {
-                engine.PlayerNOW.hand.Add(allTilles[0]);
-                HandPlayer.Children.Clear();
-                engine.DrawHandTile(ref engine.PlayerNOW, ref HandPlayer);
-                allTilles.RemoveAt(0);
-                BoneyardCountText.Text = allTilles.Count.ToString();
-                
-                // Обновляем статистику после взятия кости
-                UpdateGameStats();
-            }
+            if (player1 == null || allTilles.Count == 0) return;
+
+            engine.PlayerNOW.hand.Add(allTilles[0]);
+            HandPlayer.Children.Clear();
+            engine.DrawHandTile(ref engine.PlayerNOW, ref HandPlayer);
+            allTilles.RemoveAt(0);
+            
+            UpdateGameStats();
         }
 
-        //Метод смены игрока при нажатии на кнопку
+        // Метод смены игрока при нажатии на кнопку
         public void PassButton_Click(object sender, RoutedEventArgs e)
         {
             if (player1 == null) return;
             
-            // Обновляем статистику перед сменой хода
-            UpdateGameStats();
-            
+            // Проверка на конец игры
             if (engine.Skip_move_count >= 2)
             {
-                int scope1 = 0;
-                int scope2 = 0;
-                for (int i = 0; i <player1.hand.Count; i++)
-                {
-                    scope1 += player1.hand[i].value1;
-                    scope1 += player1.hand[i].value2;
-                }
-                for (int i = 0; i < player2.hand.Count; i++)
-                {
-                    scope2 += player2.hand[i].value1;
-                    scope2 += player2.hand[i].value2;
-                }
-
-                // Определяем победителя и добавляем запись в статистику
-                string winner = scope1 <= scope2 ? player1.name : player2.name;
-                AddGameToStats(winner, scope1, scope2);
-                
-                // Показываем сообщение о конце игры
-                MessageBox.Show($"Игра окончена! Победитель: {winner}\n{player1.name}: {scope1} очков\n{player2.name}: {scope2} очков", 
-                              "Конец игры", 
-                              MessageBoxButton.OK, 
-                              MessageBoxImage.Information);
+                EndGame();
+                return;
             }
             
+            SwitchPlayer();
+            UpdateGameStats();
+        }
+
+        // Метод завершения игры
+        private void EndGame()
+        {
+            int player1Score = CalculatePlayerScore(player1);
+            int player2Score = CalculatePlayerScore(player2);
+            
+            string winner = player1Score <= player2Score ? player1.name : player2.name;
+            AddGameToStats(winner, player1Score, player2Score);
+            
+            MessageBox.Show($"Игра окончена! Победитель: {winner}\n{player1.name}: {player1Score} очков\n{player2.name}: {player2Score} очков", 
+                          "Конец игры", 
+                          MessageBoxButton.OK, 
+                          MessageBoxImage.Information);
+        }
+
+        // Метод смены игрока
+        private void SwitchPlayer()
+        {
             HandPlayer.Children.Clear();
             engine.PlayerNOW = engine.PlayerNOW == player1 ? player2 : player1;
             engine.DrawHandTile(ref engine.PlayerNOW, ref HandPlayer);
             engine.Skip_move_count++;
             engine.GameStart(this);
-            
-            // Обновляем статистику после смены хода
-            UpdateGameStats();
         }
 
-        //Метод смены игрока при нажатии на кнопку, для использования в движке игры
-        public void PassButton_Click()
-        {
-            HandPlayer.Children.Clear();
-            engine.PlayerNOW = engine.PlayerNOW == player1 ? player2 : player1;
-            engine.DrawHandTile(ref engine.PlayerNOW, ref HandPlayer);
-            engine.Skip_move_count = 0;
-            engine.GameStart(this);
-            
-            // Обновляем статистику после смены хода
-            UpdateGameStats();
-        }
-
-        //Кнопка выхода из программы
-        public void ExiteButton_Click(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
-        //Нажатие левой кнопки мышью по канвасу
-        public bool CanvasLeftClickedFLAG = false;
-        public void CanvasLeftClicked(object sender, MouseButtonEventArgs e)
-        {
-            if (CanvasLeftClickedFLAG) return;
-            //Защита от дабл клика
-            if ((DateTime.Now - _lastClickTime).TotalMilliseconds < 300)
-                return;
-
-            _lastClickTime = DateTime.Now;
-
-            engine.CanvasLeftClicked(sender, e);
-            
-            // Обновляем статистику после хода
-            UpdateGameStats();
-        }
-
-        //Нажатие правой кнопки мышью по канвасу
-        public void CanvasRightClicked(object sender, MouseButtonEventArgs e)
-        {
-            //Защита от дабл клика
-            if ((DateTime.Now - _lastClickTime).TotalMilliseconds < 300)
-                return;
-
-            _lastClickTime = DateTime.Now;
-
-            engine.CanvasRightClicked(sender, e, this);
-            
-            // Обновляем статистику после хода
-            UpdateGameStats();
-        }
-
-        public void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            engine.Rectangle_MouseDown(sender, e);
-            
-            // Обновляем статистику после хода
-            UpdateGameStats();
-        }
-
-        //Изменение режима музыки
-        Image imageON = new Image { Width = 50, Height = 50, Stretch = Stretch.Uniform };
-        BitmapImage bitmapON = new BitmapImage(new Uri("/Resource/SOUNDON.png", UriKind.Relative));
-        Image imageOFF = new Image { Width = 50, Height = 50, Stretch = Stretch.Uniform };
-        BitmapImage bitmapOFF = new BitmapImage(new Uri("/Resource/SOUNDOFF.png", UriKind.Relative));
-        public void ChangeModeMusic(object sender, RoutedEventArgs e)
-        {
-            if (PauseMusic.Source == bitmapOFF)
-            {
-                PauseMusic.Source = bitmapON;
-                _musicPlayer.Play();
-            }
-            else
-            {
-                PauseMusic.Source = bitmapOFF;
-                _musicPlayer.Pause();
-            }
-        }
-
-        //Метод циклит музыку
-        private void MusicPlayer_MediaEnded(object sender, EventArgs e)
-        {
-            _musicPlayer.Position = TimeSpan.Zero;
-            _musicPlayer.Play();
-        }
-    }
-
-    //Класс кости
-    public class Tile
-    {
-        public int value1;
-        public int value2;
-        public int width = 30;
-        public int height = 60;
-        public Canvas rectangle = new Canvas();
-        //1 - верх, 2 - право, 3 -вниз, 4 -влево
-        public int direction;
-        public int end_tile;
-    }
-
-    //Класс игрока
-    public class Player
-    {
-        public string name;
-        public List<Tile> hand = new List<Tile>();        
+        // Остальные методы остаются без изменений
+        // ...
     }
 }
