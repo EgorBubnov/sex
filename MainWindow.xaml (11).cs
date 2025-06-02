@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Collections.Generic;
 
 namespace DOMINO
 {
@@ -31,6 +32,9 @@ namespace DOMINO
         private DateTime _lastClickTime = DateTime.MinValue;
         //Медиа плеер
         private MediaPlayer _musicPlayer;
+        //Список для хранения статистики игр
+        private List<string> gameStats = new List<string>();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -52,11 +56,26 @@ namespace DOMINO
         {
             var statsWindow = new StatsWindow();
             
-            // Здесь можно добавить данные статистики, например:
-            // statsWindow.AddStatItem("Игра 1: Игрок1 vs Игрок2 - Победитель: Игрок1");
-            // statsWindow.AddStatItem("Игра 2: Игрок1 vs Игрок2 - Победитель: Игрок2");
+            // Добавляем все сохраненные записи статистики в окно
+            foreach (var stat in gameStats)
+            {
+                statsWindow.AddStatItem(stat);
+            }
+            
+            // Если статистика пуста, показываем сообщение
+            if (gameStats.Count == 0)
+            {
+                statsWindow.AddStatItem("Статистика игр пока отсутствует");
+            }
             
             statsWindow.ShowDialog();
+        }
+
+        // Метод для добавления записи о завершенной игре
+        public void AddGameToStats(string winnerName, int player1Score, int player2Score)
+        {
+            string statEntry = $"{DateTime.Now:dd.MM.yyyy HH:mm} - {player1.name} ({player1Score}) vs {player2.name} ({player2Score}). Победитель: {winnerName}";
+            gameStats.Add(statEntry);
         }
 
         //Кнопка создания новой игры  
@@ -149,7 +168,16 @@ namespace DOMINO
                     scope2 += player2.hand[i].value1;
                     scope2 += player2.hand[i].value2;
                 }
-                //TODO: счет сравнивать
+
+                // Определяем победителя и добавляем запись в статистику
+                string winner = scope1 <= scope2 ? player1.name : player2.name;
+                AddGameToStats(winner, scope1, scope2);
+                
+                // Показываем сообщение о конце игры
+                MessageBox.Show($"Игра окончена! Победитель: {winner}\n{player1.name}: {scope1} очков\n{player2.name}: {scope2} очков", 
+                              "Конец игры", 
+                              MessageBoxButton.OK, 
+                              MessageBoxImage.Information);
             }
             HandPlayer.Children.Clear();
             engine.PlayerNOW = engine.PlayerNOW == player1 ? player2 : player1;
