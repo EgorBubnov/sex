@@ -1,0 +1,45 @@
+<mxfile>
+  <diagram name="Страница-1" id="u2gD-3qdy3Xoj3WJkynK">
+    <mxGraphModel dx="1200" dy="600">
+      <root>
+        <!-- Внешние сущности -->
+        <mxCell id="0" />
+        <mxCell id="1" value="Пользователь" style="swimlane;fontStyle=1" parent="0" vertex="1">
+          <mxGeometry x="120" y="200" width="120" height="60" />
+        </mxCell>
+        <mxCell id="2" value="Внешние API (WAQI, Recyclemap)" style="swimlane;fontStyle=1" parent="0" vertex="1">
+          <mxGeometry x="600" y="300" width="160" height="60" />
+        </mxCell>
+
+        <!-- Основные модули -->
+        <mxCell id="3" value="Frontend" style="rounded=1;whiteSpace=wrap;fontStyle=1" parent="0" vertex="1">
+          <mxGeometry x="300" y="200" width="120" height="60" />
+        </mxCell>
+        <mxCell id="4" value="Обработка запросов" style="rounded=1;whiteSpace=wrap;fontStyle=1" parent="0" vertex="1">
+          <mxGeometry x="300" y="350" width="140" height="60" />
+        </mxCell>
+        <mxCell id="5" value="Реконструкция данных" style="rounded=1;whiteSpace=wrap;fontStyle=1" parent="0" vertex="1">
+          <mxGeometry x="500" y="200" width="140" height="60" />
+        </mxCell>
+        <mxCell id="6" value="Визуализация" style="rounded=1;whiteSpace=wrap;fontStyle=1" parent="0" vertex="1">
+          <mxGeometry x="500" y="350" width="120" height="60" />
+        </mxCell>
+        <mxCell id="7" value="БД данных" style="shape=cylinder;whiteSpace=wrap;fontStyle=1" parent="0" vertex="1">
+          <mxGeometry x="300" y="500" width="120" height="80" />
+        </mxCell>
+        <mxCell id="8" value="БД кэша" style="shape=cylinder;whiteSpace=wrap;fontStyle=1" parent="0" vertex="1">
+          <mxGeometry x="500" y="500" width="120" height="80" />
+        </mxCell>
+
+        <!-- Связи -->
+        <mxCell id="c1" value="Запрос" style="endArrow=classic;html=1;fontStyle=1" parent="0" source="1" target="3" edge="1" />
+        <mxCell id="c2" value="Передача" style="endArrow=classic;html=1;fontStyle=1" parent="0" source="3" target="4" edge="1" />
+        <mxCell id="c3" value="API-запрос" style="endArrow=classic;html=1;fontStyle=1" parent="0" source="4" target="2" edge="1" />
+        <mxCell id="c4" value="Данные" style="endArrow=classic;html=1;fontStyle=1" parent="0" source="7" target="5" edge="1" />
+        <mxCell id="c5" value="Результат" style="endArrow=classic;html=1;fontStyle=1" parent="0" source="5" target="6" edge="1" />
+        <mxCell id="c6" value="Кэширование" style="endArrow=classic;html=1;fontStyle=1" parent="0" source="6" target="8" edge="1" />
+        <mxCell id="c7" value="Отображение" style="endArrow=classic;html=1;fontStyle=1" parent="0" source="8" target="3" edge="1" />
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
